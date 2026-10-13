@@ -1,0 +1,1 @@
+import * as XLSX from 'xlsx';export function downloadXlsx(name:string,rows:Record<string,unknown>[]){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Data');XLSX.writeFile(wb,name)}

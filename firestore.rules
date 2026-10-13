@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth != null;}
+  function role(){return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;}
+  function buyer(){return signedIn() && role() in ['buyer','admin'];}
+  match /users/{uid}{allow read: if signedIn();allow write: if signedIn() && (request.auth.uid==uid || role()=='admin');}
+  match /vendors/{id}{allow read: if signedIn();allow write: if buyer();}
+  match /rfqs/{id}{allow read: if signedIn();allow create,update: if buyer();allow delete: if signedIn() && role()=='admin';
+   match /auditLogs/{log}{allow read: if signedIn();allow create: if signedIn();allow update,delete: if false;}
+   match /{sub}/{docId}{allow read: if signedIn();allow write: if buyer() && sub in ['items','vendorQuotes','bids','counterBids','rounds','snapshots','comments'];}
+  }
+  match /{collection}/{id}{allow read: if signedIn();allow write: if buyer() && collection in ['purchaseOrders','templates','notifications'];}
+ }
+}
